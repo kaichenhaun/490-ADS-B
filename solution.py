@@ -20,7 +20,7 @@ def parse_message(data, start, bit_len):
     bits_str = ""
     for p in range(8):
         pos = start_data + bit_len*p
-        p1, p2 = A[pos: pos + bit_len/2], A[pos + bit_len/2: pos + bit_len]
+        p1, p2 = A[int(pos): int(pos + bit_len/2)], A[int(pos + bit_len/2): int(pos + bit_len)]
         avg1, avg2 = np.average(p1), np.average(p2)
         if avg1 < avg2:
             bits_str += "0"
@@ -33,13 +33,13 @@ def parse_message(data, start, bit_len):
     bits_str = ""
     for p in range(8, 32):
         pos = start_data + bit_len * p
-        p1, p2 = A[pos: pos + bit_len / 2], A[pos + bit_len / 2: pos + bit_len]
+        p1, p2 = A[int(pos): int(pos + bit_len/2)], A[int(pos + bit_len/2): int(pos + bit_len)]
         avg1, avg2 = np.average(p1), np.average(p2)
         if avg1 < avg2:
             bits_str += "0"
         elif avg1 > avg2:
             bits_str += "1"
-    # print "Aircraft address:", bits_str, hex(int(bits_str, 2))
+    print("Aircraft address:", bits_str, hex(int(bits_str, 2)))
     address = hex(int(bits_str, 2))
 
     # Filter specific aircraft (optional)
@@ -53,7 +53,7 @@ def parse_message(data, start, bit_len):
         bits_str = ""
         for p in range(32, 88):
             pos = start_data + bit_len*p
-            p1, p2 = A[pos: pos + bit_len/2], A[pos + bit_len/2: pos + bit_len]
+            p1, p2 = A[int(pos): int(pos + bit_len/2)], A[int(pos + bit_len/2): int(pos + bit_len)]
             avg1, avg2 = np.average(p1), np.average(p2)
             if avg1 < avg2:
                 bits_str += "0"
@@ -207,7 +207,11 @@ def calc_coordinates():
         print("Alt (ft)", alt_ft)
 
 
-fs, data = wavfile.read("adsb_20190311_191728Z_1090000kHz_RF.wav")
+# fs, data = wavfile.read("adsb_20190311_191728Z_1090000kHz_RF.wav")
+raw = np.load("adsb.npy")
+data = np.array([np.real(raw), np.imag(raw)])
+fs = 1e6
+
 T = 1/fs
 
 print("Sample rate %f MS/s" % (fs / 1e6))
@@ -218,8 +222,8 @@ data = data.astype(float)
 
 cnt = data.shape[0]
 # Processing only part on file (faster):
-# cnt = 10000000
-# data = data[:cnt]
+cnt = 10000000
+data = data[:cnt]
 print("Processing I/Q...")
 I, Q = data[:, 0], data[:, 1]
 A = np.sqrt(I*I + Q*Q)
